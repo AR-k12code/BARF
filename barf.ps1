@@ -315,7 +315,8 @@ Invoke-SqlQuery -Query "SELECT
         ,barf_import_schd_ms_csv.COURSE_SECTION AS Section_number
         ,'' AS Grade
         ,barf_import_schd_ms_csv.DESCRIPTION AS Course_name
-        ,barf_import_schd_ms_csv.COURSE AS Course
+        ,barf_import_schd_ms_csv.COURSE AS Course_number
+        ,barf_import_schd_ms_csv.DESCRIPTION AS Course_description
         ,barf_import_schd_ms_session_csv.START_PERIOD AS Period
         ,'' AS Subject
         ,barf_import_schd_ms_mp_csv.MARKING_PERIOD AS Term_name
