@@ -1,3 +1,4 @@
+#Requires -Version 7.4
 #Requires -Modules eSchoolModule,SimplySql
 <#
 
@@ -23,6 +24,64 @@ Open-SQLiteConnection -DataSource "$PSScriptRoot\db.sqlite3" -ErrorAction Stop
 if (-Not(Test-Path "$HOME\.config\eSchoolModule\eSchoolDatabase.csv")) {
     Get-eSPDefinitionsUpdates
 }
+
+function Remove-StringLatinCharacter {
+    <#
+.SYNOPSIS
+    Function to remove diacritics from a string
+.DESCRIPTION
+    Function to remove diacritics from a string
+.PARAMETER String
+    Specifies the String that will be processed
+.EXAMPLE
+    Remove-StringLatinCharacter -String "L'été de Raphaël"
+    L'ete de Raphael
+.EXAMPLE
+    Foreach ($file in (Get-ChildItem c:\test\*.txt))
+    {
+        # Get the content of the current file and remove the diacritics
+        $NewContent = Get-content $file | Remove-StringLatinCharacter
+        # Overwrite the current file with the new content
+        $NewContent | Set-Content $file
+    }
+    Remove diacritics from multiple files
+.NOTES
+    Francois-Xavier Cat
+    lazywinadmin.com
+    @lazywinadmin
+    github.com/lazywinadmin
+    BLOG ARTICLE
+        https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html
+    VERSION HISTORY
+        1.0.0.0 | Francois-Xavier Cat
+            Initial version Based on Marcin Krzanowic code
+        1.0.0.1 | Francois-Xavier Cat
+            Added support for ValueFromPipeline
+        1.0.0.2 | Francois-Xavier Cat
+            Add Support for multiple String
+            Add Error Handling
+    .LINK
+        https://github.com/lazywinadmin/PowerShell
+#>
+    [CmdletBinding()]
+    PARAM (
+        [Parameter(ValueFromPipeline = $true)]
+        [System.String[]]$String
+    )
+    PROCESS {
+        FOREACH ($StringValue in $String) {
+            Write-Verbose -Message "$StringValue"
+
+            TRY {
+                [Text.Encoding]::ASCII.GetString([Text.Encoding]::GetEncoding("Cyrillic").GetBytes($StringValue))
+            }
+            CATCH {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+        }
+    }
+}
+
 $downloadDefinitions = Invoke-eSPExecuteSearch -SearchType UPLOADDEF
 
 #This intentionally does not contain REG_CONTACT or REG_STU_CONTACT.
@@ -130,7 +189,7 @@ $tables +
 
             #Now we need to import the data into the database.
             Write-Output "Importing $PSItem to table barf_import_$($PSItem)_csv"
-            & csvsql -I --db "sqlite:///$($eSchooldsn).sqlite3" -d '|' -y 0 --insert --overwrite --blanks --tables "barf_import_$($PSItem)_csv" "$PSScriptRoot\files\$($PSItem).csv"
+            & csvsql -I --db "sqlite:///db.sqlite3" -d '|' -y 0 --insert --overwrite --blanks --tables "barf_import_$($PSItem)_csv" "$PSScriptRoot\files\$($PSItem).csv"
         
         }
 
@@ -245,7 +304,7 @@ Invoke-SqlUpdate -Query "CREATE TEMP TABLE IF NOT EXISTS secondary_teachers AS
         ,STAFF_ID
     FROM barf_import_schd_ms_staff_csv"
 
-Invoke-SqlUpdate -Query "SELECT
+Invoke-SqlQuery -Query "SELECT
         barf_import_schd_ms_csv.BUILDING AS School_id
         ,barf_import_schd_ms_csv.SECTION_KEY AS Section_id
         ,barf_import_schd_ms_session_csv.PRIMARY_STAFF_ID AS Teacher_id
@@ -285,17 +344,17 @@ Invoke-SqlUpdate -Query "SELECT
     WHERE
         barf_import_schd_ms_csv.SCHOOL_YEAR = @schoolyear
     AND barf_import_schd_course_csv.ACTIVE_STATUS = 'Y'
-    ORDER BY barf_import_schd_ms_csv.SECTION_KEY,barf_import_schd_ms_mp_csv.MARKING_PERIOD" -Parameters {
+    ORDER BY barf_import_schd_ms_csv.SECTION_KEY,barf_import_schd_ms_mp_csv.MARKING_PERIOD" -Parameters @{
         schoolyear = $schoolyear
     } | 
         Export-CSV -Path "sections.csv" -NoTypeInformation -Force -Verbose -UseQuotes AsNeeded
 
-#Enrollments
+#Enrollments #Marking_period is not included in the final file upload. Which means there can be duplicates but it should be close enough to get us through this outage.
 Invoke-SqlQuery -Query "SELECT
         barf_import_schd_ms_csv.BUILDING AS School_id
         ,barf_import_schd_stu_course_csv.SECTION_KEY AS Section_id
         ,barf_import_schd_stu_course_csv.STUDENT_ID AS Student_id
-        ,barf_import_schd_ms_mp_csv.MARKING_PERIOD AS Marking_period
+        /*,barf_import_schd_ms_mp_csv.MARKING_PERIOD AS Marking_period*/
     FROM  barf_import_schd_stu_course_csv
     LEFT JOIN barf_import_schd_ms_csv ON
         barf_import_schd_stu_course_csv.SECTION_KEY = barf_import_schd_ms_csv.SECTION_KEY
@@ -314,7 +373,7 @@ Invoke-SqlQuery -Query "SELECT
         barf_import_schd_ms_csv.BUILDING AS School_id
         ,barf_import_schd_stu_conf_mp_csv.SECTION_KEY AS Section_id
         ,barf_import_schd_stu_conf_mp_csv.STUDENT_ID AS Student_id
-        ,barf_import_schd_stu_conf_mp_csv.MARKING_PERIOD AS Marking_period
+        /*,barf_import_schd_stu_conf_mp_csv.MARKING_PERIOD AS Marking_period*/
     FROM barf_import_schd_stu_conf_mp_csv
     INNER JOIN barf_import_schd_ms_csv USING (SECTION_KEY)
     INNER JOIN barf_import_schd_stu_course_csv USING (STUDENT_ID,SECTION_KEY)
