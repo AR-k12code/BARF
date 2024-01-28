@@ -33,4 +33,6 @@ Open Powershell and Run:
 - sections.csv
 
 ## Upload to Clever
+You are encouraged to ONLY uplaod the students.csv and the enrollments.csv files. The sections.csv, schools.csv, and sections.csv are different than the Clever project.
+
 You can find your SFTP credentials here: https://schools.clever.com/sync/settings
