@@ -321,7 +321,7 @@ Invoke-SqlQuery -Query "SELECT
         ,'' AS Subject
         ,barf_import_schd_ms_mp_csv.MARKING_PERIOD AS Term_name
         ,barf_import_reg_mp_dates_csv.START_DATE AS Term_start
-        ,barf_import_reg_mp_dates_csv.START_DATE AS Term_end
+        ,barf_import_reg_mp_dates_csv.END_DATE AS Term_end
     FROM barf_import_schd_ms_csv
     LEFT JOIN barf_import_schd_ms_session_csv ON
         barf_import_schd_ms_csv.SECTION_KEY = barf_import_schd_ms_session_csv.SECTION_KEY
