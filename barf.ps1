@@ -1,4 +1,4 @@
-#Requires -Version 7.4
+#Requires -Version 7.3
 #Requires -Modules eSchoolModule,SimplySql
 <#
 
@@ -23,6 +23,10 @@ Open-SQLiteConnection -DataSource "$PSScriptRoot\db.sqlite3" -ErrorAction Stop
 
 if (-Not(Test-Path "$HOME\.config\eSchoolModule\eSchoolDatabase.csv")) {
     Get-eSPDefinitionsUpdates
+}
+
+if (-Not(Test-Path "$PSScriptRoot\files")) {
+    New-Item -Path "$PSScriptRoot\files" -ItemType Directory -Force
 }
 
 function Remove-StringLatinCharacter {
