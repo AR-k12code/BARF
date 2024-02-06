@@ -279,7 +279,7 @@ Invoke-SqlQuery -Query "SELECT
         ,guardian1_contact.CONTACT_ID AS Contact_sis_id
         ,'' AS Username
         ,'' AS Password
-        ,barf_import_regtb_language_csv.DESCRIPTION
+        ,barf_import_regtb_language_csv.DESCRIPTION AS Home_language
     FROM barf_import_reg_csv
     LEFT JOIN barf_import_reg_personal_csv ON barf_import_reg_csv.STUDENT_ID = barf_import_reg_personal_csv.STUDENT_ID
     LEFT JOIN (SELECT * FROM barf_import_reg_stu_contact_csv WHERE CONTACT_TYPE = 'M') AS student_mailing_contact ON
