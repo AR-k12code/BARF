@@ -251,7 +251,7 @@ Invoke-SqlQuery -Query "SELECT
             WHEN '04' THEN 'F'
         END AS Frl_status
         ,barf_import_reg_personal_csv.HAS_IEP AS Iep_status
-        ,student_contact.STREET_NAME AS Student_streeet
+        ,student_contact.STREET_NAME AS Student_street
         ,student_contact.CITY AS Student_city
         ,student_contact.STATE AS Student_state
         ,student_contact.ZIP AS Student_zip
